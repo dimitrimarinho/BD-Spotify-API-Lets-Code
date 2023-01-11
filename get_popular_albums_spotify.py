@@ -1,0 +1,3 @@
+import api_functionality
+
+api_functionality.get_popular_albums_on_spotify()
