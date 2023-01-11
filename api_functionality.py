@@ -29,10 +29,12 @@ def search_artist(artist_name):
     search_result = requests.get(BASE_URL + 'search?' + f'q=%20artist:{artist_name}&type=artist&limit=5', headers=authorization.get_headers())
     search_result = search_result.json()
 
-    data_searched = {'id':[],'Name':[]}
+    data_searched = {'id_artist':[],'Name_artist':[],'genres':[],'popularity':[]}
     for item in search_result['artists']['items']:
-        data_searched['Name'].append(item['name'])
-        data_searched['id'].append(item['id'])
+        data_searched['Name_artist'].append(item['name'])
+        data_searched['id_artist'].append(item['id'])
+        data_searched['genres'].append(','.join(item['genres']))
+        data_searched['popularity'].append(item['popularity'])
         
     df_searched_result = pd.DataFrame(data_searched)
     return df_searched_result
@@ -68,9 +70,11 @@ def get_all_tracks_album(album_id):
 def print_data_frame(df_searched_result):  
     print(tabulate(df_searched_result, headers='keys', tablefmt='psql'))
 
-def choose_kept_date(dataframe_searched_music):
-    keep_searched  = [int(id) for id in input('Which tracks will be saved in database? ').split(',')]
-    df_kept = dataframe_searched_music.iloc[keep_searched].reset_index(drop=True)
+def choose_kept_data(dataframe):
+    print_data_frame(dataframe)
+    keep_searched  = [int(id) for id in input('Which data will be saved in the database? ').split(',')]
+    print()
+    df_kept = dataframe.iloc[keep_searched].reset_index(drop=True)
     return df_kept
 
 def addapt_numpy_int64(numpy_int64):
