@@ -1,0 +1,3 @@
+import save_content_postgresql
+
+save_content_postgresql.create_table_spotify()

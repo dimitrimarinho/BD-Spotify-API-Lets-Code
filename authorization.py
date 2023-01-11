@@ -27,6 +27,6 @@ def get_headers():
 def db_secrets():
     return {"host": "localhost",
             "port": 5432,
-            "database": "postgres",
+            "database": "spotify-api",
             "user": "postgres",
-            "pass": "franboesa"}
+            "pass": "root"}
