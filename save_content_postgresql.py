@@ -1,5 +1,4 @@
 import psycopg2
-import pandas as pd
 
 def create_table_spotify():
     con = psycopg2.connect(host='localhost', database='spotify-api',
