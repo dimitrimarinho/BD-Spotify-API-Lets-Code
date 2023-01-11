@@ -65,7 +65,7 @@ def get_all_tracks_album(album_id):
     df_searched_result = pd.DataFrame(data_searched)
     return df_searched_result
 
-def print_search_results(df_searched_result):  
+def print_data_frame(df_searched_result):  
     print(tabulate(df_searched_result, headers='keys', tablefmt='psql'))
 
 def choose_kept_date(dataframe_searched_music):
