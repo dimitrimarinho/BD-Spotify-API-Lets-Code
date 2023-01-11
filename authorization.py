@@ -29,4 +29,4 @@ def db_secrets():
             "port": 5432,
             "database": "postgres",
             "user": "postgres",
-            "pass": ""}
+            "pass": "franboesa"}
