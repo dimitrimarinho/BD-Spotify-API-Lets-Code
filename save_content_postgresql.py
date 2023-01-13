@@ -43,6 +43,19 @@ def create_table(type_table):
     con.commit()
     con.close()
 
+def new_create_table(type_table):
+    map_sql_command = {
+        'artist':'create table IF NOT EXISTS artist (id serial primary key, id_artist varchar(100) UNIQUE, Name_artist varchar(100), genres varchar(100), popularity_artist integer)',
+        'album':'create table IF NOT EXISTS album (id serial primary key, id_album varchar(100) UNIQUE, Name_album varchar(100), release_date varchar(100), popularity_album integer, id_artist integer references artist(id) on delete cascade)',
+        'track':'create table IF NOT EXISTS track (id serial primary key, id_track varchar(100) UNIQUE, Name_track varchar(100), duration_ms int, popularity_track integer, id_album integer references album(id) on delete cascade)'
+    }
+    con = create_connection_spotify_db()
+    cur = con.cursor()
+    sql = map_sql_command[type_table]
+    cur.execute(sql)
+    con.commit()
+    con.close()
+
 def save_search_artist(df_searched_result):
     con = create_connection_spotify_db()
     cur = con.cursor()
@@ -71,3 +84,51 @@ def save_register(df_result,type_table):
     for rec in recset:
         print('\n\nÚltimo registro salvo no Banco de dados: ', rec)
     con.close()
+
+def new_save_artist_register(df_artist):
+    con = create_connection_spotify_db()
+    cur = con.cursor()
+    args_str = ','.join(cur.mogrify("(%s,%s,%s,%s)", row).decode('utf-8') for _,row in df_artist.iterrows())
+    query = "INSERT INTO artist (id_artist, Name_artist, genres, popularity_artist) VALUES "+args_str+" ON CONFLICT (id_artist) DO NOTHING returning artist;"
+    cur.execute(query)
+    con.commit()
+    con.close()
+
+def new_save_album_register(df_album):
+    con = create_connection_spotify_db()
+    cur = con.cursor()
+    query = "(SELECT id,id_artist from artist WHERE id_artist IN %s)"
+    cur.execute(query,(tuple(df_album['id_artist']),))
+    album_ids = cur.fetchall()
+    df = df_album
+    mapping = {id[1]:str(id[0]) for id in album_ids}
+    df['id_artist'] = df['id_artist'].map(mapping).astype(np.int64)
+    args_str = ','.join(cur.mogrify("(%s,%s,%s,%s,%s)", row).decode('utf-8') for _,row in df.iterrows())
+    query = "INSERT INTO album (id_album, Name_album, release_date, popularity_album, id_artist) VALUES "+args_str+" ON CONFLICT (id_album) DO NOTHING returning album;"
+    cur.execute(query)
+    con.commit()
+    con.close()
+
+def new_save_track_register(df_track):
+    con = create_connection_spotify_db()
+    cur = con.cursor()
+    query = "(SELECT id,id_album from album WHERE id_album IN %s)"
+    cur.execute(query,(tuple(df_track['id_album']),))
+    album_ids = cur.fetchall()
+    df = df_track
+    mapping = {id[1]:str(id[0]) for id in album_ids}
+    df['id_album'] = df['id_album'].map(mapping).astype(np.int64)
+    args_str = ','.join(cur.mogrify("(%s,%s,%s,%s,%s)", row).decode('utf-8') for _,row in df.iterrows())
+    query = "INSERT INTO track (id_track, Name_track, duration_ms, popularity_track, id_album) VALUES "+args_str+" ON CONFLICT (id_track) DO NOTHING returning track;" 
+    cur.execute(query)
+    con.commit()
+    con.close()
+
+def new_save_register(df_result,type_table):
+    map_save_function = {
+        'artist':new_save_artist_register,
+        'album':new_save_album_register,
+        'track':new_save_track_register
+    }
+    save_function = map_save_function[type_table]
+    save_function(df_result)
