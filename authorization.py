@@ -1,6 +1,4 @@
 import requests
-# import json
-
 
 def get_access_token():
     CLIENT_ID = '4a293dfca9f3429aa9dabd24610f4ea9'

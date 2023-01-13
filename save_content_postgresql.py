@@ -1,5 +1,11 @@
 import psycopg2
 import authorization
+import numpy as np
+import psycopg2
+
+def addapt_numpy_int64(numpy_int64):
+    return psycopg2.extensions.AsIs(numpy_int64)
+psycopg2.extensions.register_adapter(np.int64,addapt_numpy_int64)
 
 def create_connection_spotify_db():
     secrets = authorization.db_secrets()
@@ -26,9 +32,9 @@ def create_table_spotify():
 
 def create_table(type_table):
     map_sql_command = {
-        'artist':'create table IF NOT EXISTS artist (id serial primary key, id_artist varchar(100) UNIQUE, Name_artist varchar(100), genres varchar(100), popularity integer)',
-        'album':'create table IF NOT EXISTS album (id serial primary key, id_album varchar(100) UNIQUE, Name_album varchar(100), release_date varchar(100), id_artist varchar(100))',
-        'track':'create table IF NOT EXISTS track (id serial primary key, id_track varchar(100) UNIQUE, Name_track varchar(100), duration_ms int, id_album varchar(100))'
+        'artist':'create table IF NOT EXISTS artist (id serial primary key, id_artist varchar(100) UNIQUE, Name_artist varchar(100), genres varchar(100), popularity_artist integer)',
+        'album':'create table IF NOT EXISTS album (id serial primary key, id_album varchar(100) UNIQUE, Name_album varchar(100), release_date varchar(100), popularity_album integer, id_artist varchar(100))',
+        'track':'create table IF NOT EXISTS track (id serial primary key, id_track varchar(100) UNIQUE, Name_track varchar(100), duration_ms int, popularity_track integer, id_album varchar(100))'
     }
     con = create_connection_spotify_db()
     cur = con.cursor()
@@ -52,9 +58,9 @@ def save_register(df_result,type_table):
     con = create_connection_spotify_db()
     cur = con.cursor()
     map_sql_command = {
-        'artist':"INSERT INTO artist (id_artist, Name_artist, genres, popularity) VALUES (%s, %s, %s, %s) ON CONFLICT (id_artist) DO NOTHING returning artist;",
-        'album':"INSERT INTO album (id_album, Name_album, release_date, id_artist) VALUES (%s, %s, %s, %s) ON CONFLICT (id_album) DO NOTHING returning album;",
-        'track':"INSERT INTO track (id_track, Name_track, duration_ms, id_album) VALUES (%s, %s, %s, %s) ON CONFLICT (id_track) DO NOTHING returning track;", 
+        'artist':"INSERT INTO artist (id_artist, Name_artist, genres, popularity_artist) VALUES (%s, %s, %s, %s) ON CONFLICT (id_artist) DO NOTHING returning artist;",
+        'album':"INSERT INTO album (id_album, Name_album, release_date, popularity_album, id_artist) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id_album) DO NOTHING returning album;",
+        'track':"INSERT INTO track (id_track, Name_track, duration_ms, popularity_track, id_album) VALUES (%s, %s, %s, %s, %s) ON CONFLICT (id_track) DO NOTHING returning track;", 
     }
     sql = map_sql_command[type_table]
     for index, row in df_result.iterrows():
